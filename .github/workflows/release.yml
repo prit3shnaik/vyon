@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform:
+        include:
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
           - os: windows-latest
@@ -20,13 +20,13 @@ jobs:
           - os: macos-latest
             target: aarch64-apple-darwin
 
-    runs-on: ${{ matrix.platform.os }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Linux dependencies
-        if: matrix.platform.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
@@ -39,7 +39,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform.target }}
+          targets: ${{ matrix.target }}
 
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
@@ -54,32 +54,69 @@ jobs:
         run: npm run build
         working-directory: ./frontend
 
-      - name: Generate icons from logo
+      - name: Generate icons (Ubuntu)
+        if: matrix.os == 'ubuntu-22.04'
         run: |
           mkdir -p src-tauri/icons
-          python3 -m pip install Pillow --break-system-packages --quiet
+          pip install Pillow
           python3 - << 'PYEOF'
           from PIL import Image
           import os
-
           src = "src-tauri/icons/app-icon.png"
-          if not os.path.exists(src):
-              img = Image.new("RGBA", (512, 512), (10, 10, 20, 255))
-          else:
-              img = Image.open(src).convert("RGBA")
+          img = Image.open(src).convert("RGBA") if os.path.exists(src) else Image.new("RGBA", (512,512), (10,10,20,255))
+          img.resize((32,32), Image.LANCZOS).save("src-tauri/icons/32x32.png")
+          img.resize((128,128), Image.LANCZOS).save("src-tauri/icons/128x128.png")
+          img.resize((256,256), Image.LANCZOS).save("src-tauri/icons/128x128@2x.png")
+          img.resize((256,256), Image.LANCZOS).save("src-tauri/icons/icon.icns")
+          img.resize((256,256), Image.LANCZOS).save("src-tauri/icons/icon.ico")
+          print("Icons done")
+          PYEOF
 
-          img.resize((32, 32), Image.LANCZOS).save("src-tauri/icons/32x32.png")
-          img.resize((128, 128), Image.LANCZOS).save("src-tauri/icons/128x128.png")
-          img.resize((256, 256), Image.LANCZOS).save("src-tauri/icons/128x128@2x.png")
-          img.resize((256, 256), Image.LANCZOS).save("src-tauri/icons/icon.icns")
-          img.resize((256, 256), Image.LANCZOS).save("src-tauri/icons/icon.ico")
-          print("Icons generated!")
+      - name: Generate icons (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          mkdir -p src-tauri/icons
+          pip3 install Pillow --break-system-packages
+          python3 - << 'PYEOF'
+          from PIL import Image
+          import os
+          src = "src-tauri/icons/app-icon.png"
+          img = Image.open(src).convert("RGBA") if os.path.exists(src) else Image.new("RGBA", (512,512), (10,10,20,255))
+          img.resize((32,32), Image.LANCZOS).save("src-tauri/icons/32x32.png")
+          img.resize((128,128), Image.LANCZOS).save("src-tauri/icons/128x128.png")
+          img.resize((256,256), Image.LANCZOS).save("src-tauri/icons/128x128@2x.png")
+          img.resize((256,256), Image.LANCZOS).save("src-tauri/icons/icon.icns")
+          img.resize((256,256), Image.LANCZOS).save("src-tauri/icons/icon.ico")
+          print("Icons done")
+          PYEOF
+
+      - name: Generate icons (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir -p src-tauri/icons
+          pip install Pillow
+          python3 - << 'PYEOF'
+          from PIL import Image
+          import os
+          src = "src-tauri/icons/app-icon.png"
+          img = Image.open(src).convert("RGBA") if os.path.exists(src) else Image.new("RGBA", (512,512), (10,10,20,255))
+          img.resize((32,32), Image.LANCZOS).save("src-tauri/icons/32x32.png")
+          img.resize((128,128), Image.LANCZOS).save("src-tauri/icons/128x128.png")
+          img.resize((256,256), Image.LANCZOS).save("src-tauri/icons/128x128@2x.png")
+          img.resize((256,256), Image.LANCZOS).save("src-tauri/icons/icon.icns")
+          img.resize((256,256), Image.LANCZOS).save("src-tauri/icons/icon.ico")
+          print("Icons done")
           PYEOF
         shell: bash
 
-      - name: Fix unused import in reports.rs
+      - name: Fix reports.rs
         run: |
-          sed -i 's/use crate::types::{Finding, ReportData, Severity};/use crate::types::{ReportData, Severity};/' src-tauri/src/reports.rs
+          python3 -c "
+          content = open('src-tauri/src/reports.rs').read()
+          content = content.replace('use crate::types::{Finding, ReportData, Severity};', 'use crate::types::{ReportData, Severity};')
+          open('src-tauri/src/reports.rs', 'w').write(content)
+          print('Fixed')
+          "
         shell: bash
 
       - name: Build Tauri app
@@ -99,6 +136,6 @@ jobs:
             - **Linux** → `.AppImage`
 
             ### After installing
-            pip install slither-analyzer mythril
-            releaseDraft: false
-            prerelease: false
+             pip install slither-analyzer mythril
+             releaseDraft: false
+             prerelease: false
