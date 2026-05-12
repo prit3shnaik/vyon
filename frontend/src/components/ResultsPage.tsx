@@ -39,7 +39,7 @@ export function ResultsPage() {
           {([['critical','#ff2d55'],['high','#ff6b35'],['medium','#ffd60a'],['low','#34c759']] as const).map(([k,c]) => (
             <div key={k} className="bg-[#0d0d0d] border border-[#1e1e1e] rounded px-3 py-2 flex flex-col gap-0.5">
               <span className="text-[9px] uppercase tracking-widest" style={{color:c}}>{k}</span>
-              <span className="text-lg font-bold font-mono" style={{color:c}}>{(risk_score as Record<string,number>)[`${k}_count`]}</span>
+              <span className="text-lg font-bold font-mono" style={{color:c}}>{k === 'critical' ? risk_score.critical_count : k === 'high' ? risk_score.high_count : k === 'medium' ? risk_score.medium_count : risk_score.low_count}</span>
             </div>
           ))}
           <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded px-3 py-2 flex flex-col gap-0.5">
