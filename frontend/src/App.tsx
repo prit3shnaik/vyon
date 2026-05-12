@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { View } from '@/types'
-import { useScanStore } from '@/stores/scanStore'
-import { ScanPage } from '@/components/ScanPage'
-import { ResultsPage } from '@/components/ResultsPage'
-import { SettingsPage } from '@/components/SettingsPage'
+import { useScanStore } from './stores/scanStore'
+import { ScanPage } from './components/ScanPage'
+import { ResultsPage } from './components/ResultsPage'
+import { SettingsPage } from './components/SettingsPage'
 
 const NAV: { id: View; icon: string; label: string }[] = [
   { id: 'scan',     icon: '⬡', label: 'Scan'     },
