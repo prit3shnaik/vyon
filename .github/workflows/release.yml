@@ -54,6 +54,34 @@ jobs:
         run: npm run build
         working-directory: ./frontend
 
+      - name: Generate icons from logo
+        run: |
+          mkdir -p src-tauri/icons
+          pip install Pillow
+          python3 - << 'PYEOF'
+          from PIL import Image
+          import shutil, os
+
+          src = "src-tauri/icons/app-icon.png"
+          if not os.path.exists(src):
+              img = Image.new("RGBA", (512, 512), (10, 10, 20, 255))
+          else:
+              img = Image.open(src).convert("RGBA")
+
+          img.resize((32, 32), Image.LANCZOS).save("src-tauri/icons/32x32.png")
+          img.resize((128, 128), Image.LANCZOS).save("src-tauri/icons/128x128.png")
+          img.resize((256, 256), Image.LANCZOS).save("src-tauri/icons/128x128@2x.png")
+          img.resize((256, 256), Image.LANCZOS).save("src-tauri/icons/icon.icns")
+          img.resize((256, 256), Image.LANCZOS).save("src-tauri/icons/icon.ico")
+          print("Icons generated successfully")
+          PYEOF
+        shell: bash
+
+      - name: Fix unused import in reports.rs
+        run: |
+          sed -i 's/use crate::types::{Finding, ReportData, Severity};/use crate::types::{ReportData, Severity};/' src-tauri/src/reports.rs
+        shell: bash
+
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
@@ -65,10 +93,12 @@ jobs:
           releaseBody: |
             ## Vyon Web3 Security Scanner
 
-            ### Install
-            - **Windows** → download `.exe`
-            - **macOS** → download `.dmg`
-            - **Linux** → download `.AppImage`
+            ### Download
+            - **Windows** → `.exe`
+            - **macOS** → `.dmg`
+            - **Linux** → `.AppImage`
 
-            ### First run
-            Install Slither and Mythril after installing Vyon:
+            ### After installing
+            pip install slither-analyzer mythril
+            releaseDraft: false
+            prerelease: false
