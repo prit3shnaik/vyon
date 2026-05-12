@@ -57,8 +57,7 @@ jobs:
       - name: Generate icons from logo
         run: |
           mkdir -p src-tauri/icons
-          python3 -m pip install --upgrade pip --quiet
-          python3 -m pip install Pillow --quiet
+          python3 -m pip install Pillow --break-system-packages --quiet
           python3 - << 'PYEOF'
           from PIL import Image
           import os
@@ -74,7 +73,7 @@ jobs:
           img.resize((256, 256), Image.LANCZOS).save("src-tauri/icons/128x128@2x.png")
           img.resize((256, 256), Image.LANCZOS).save("src-tauri/icons/icon.icns")
           img.resize((256, 256), Image.LANCZOS).save("src-tauri/icons/icon.ico")
-          print("Icons generated successfully")
+          print("Icons generated!")
           PYEOF
         shell: bash
 
