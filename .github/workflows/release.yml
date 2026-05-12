@@ -48,11 +48,11 @@ jobs:
 
       - name: Install frontend deps
         run: npm install
-        working-directory: frontend
+        working-directory: ./frontend
 
       - name: Build frontend
         run: npm run build
-        working-directory: frontend
+        working-directory: ./frontend
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
