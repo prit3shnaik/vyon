@@ -57,10 +57,11 @@ jobs:
       - name: Generate icons from logo
         run: |
           mkdir -p src-tauri/icons
-          pip install Pillow
+          python3 -m pip install --upgrade pip --quiet
+          python3 -m pip install Pillow --quiet
           python3 - << 'PYEOF'
           from PIL import Image
-          import shutil, os
+          import os
 
           src = "src-tauri/icons/app-icon.png"
           if not os.path.exists(src):
