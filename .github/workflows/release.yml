@@ -46,6 +46,11 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
+      - name: Add shell plugin to package.json
+        run: |
+          cd frontend
+          npm install @tauri-apps/plugin-shell
+
       - name: Install frontend deps
         run: npm install
         working-directory: ./frontend
